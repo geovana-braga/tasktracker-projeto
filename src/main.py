@@ -23,13 +23,13 @@ def pedir_titulo():
 
 def pedir_prioridade():
     while True:
-        prioridade = input("Prioridade (Alta, Média ou Baixa): ").strip().lower()
+        prioridade = input("Prioridade (Alta, Média ou Baixa): ").strip()
 
-        if prioridade == "alta":
+        if prioridade == "Alta":
             return "Alta"
-        elif prioridade in ("média", "media"):
+        elif prioridade in ("Média", "Media"):
             return "Média"
-        elif prioridade == "baixa":
+        elif prioridade == "Baixa":
             return "Baixa"
 
         print("Prioridade inválida. Digite Alta, Média ou Baixa.")
