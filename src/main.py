@@ -55,6 +55,23 @@ def cadastrar_tarefa():
     print("Tarefa cadastrada com sucesso!")
 
 
+def visualizar_tarefas():
+    print("\n--- Tarefas cadastradas ---")
+
+    if not tarefas:
+        print("Nenhuma tarefa cadastrada no momento.")
+        return
+
+    for numero, tarefa in enumerate(tarefas, start=1):
+        print(f"\nTarefa {numero}")
+        print(f"Título: {tarefa['titulo']}")
+        print(f"Descrição: {tarefa['descricao']}")
+        print(f"Prioridade: {tarefa['prioridade']}")
+        print(f"Data limite: {tarefa['data_limite']}")
+        print(f"Status: {tarefa['status']}")
+        print("-" * 30)
+
+
 def main():
     while True:
         mostrar_menu()
@@ -63,7 +80,7 @@ def main():
         if opcao == "1":
             cadastrar_tarefa()
         elif opcao == "2":
-            print("\nVisualização de tarefas")
+            visualizar_tarefas()
         elif opcao == "3":
             print("\nAplicação encerrada.")
             break
