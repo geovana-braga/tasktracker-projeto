@@ -1,0 +1,35 @@
+name: Docker smoke test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docker-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build da imagem
+        run: docker build -t tasktracker-app .
+
+      - name: Execução direta do container
+        shell: bash
+        run: |
+          output=$(printf '1\nTarefa no Docker\nTeste do container\nAlta\n2026-10-31\n2\n3\n' | docker run -i --rm tasktracker-app)
+          printf '%s\n' "$output"
+          grep -Fq 'Tarefa cadastrada com sucesso!' <<< "$output"
+          grep -Fq 'Título: Tarefa no Docker' <<< "$output"
+          grep -Fq 'Status: Pendente' <<< "$output"
+
+      - name: Execução com Docker Compose
+        shell: bash
+        run: |
+          docker compose config --quiet
+          output=$(printf '2\n3\n' | docker compose run -T --rm tasktracker)
+          printf '%s\n' "$output"
+          grep -Fq 'Nenhuma tarefa cadastrada no momento.' <<< "$output"
