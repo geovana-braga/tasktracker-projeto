@@ -14,6 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Regras da CLI e persistência em Python
+        run: python3 -m unittest discover -s tests -v
+
       - name: Build da imagem
         run: docker build -t tasktracker-app .
 
@@ -30,6 +33,14 @@ jobs:
         shell: bash
         run: |
           docker compose config --quiet
-          output=$(printf '2\n3\n' | timeout 30s script -q -e -c 'docker compose run tasktracker' /dev/null)
-          printf '%s\n' "$output"
-          grep -Fq 'Nenhuma tarefa cadastrada no momento.' <<< "$output"
+          cadastro=$(printf '2\n1\nTarefa persistente\nTeste Compose\nBaixa\n2026-10-31\n3\n' | timeout 30s script -q -e -c 'docker compose run tasktracker' /dev/null)
+          printf '%s\n' "$cadastro"
+          grep -Fq 'Nenhuma tarefa cadastrada no momento.' <<< "$cadastro"
+          grep -Fq 'Tarefa cadastrada com sucesso!' <<< "$cadastro"
+
+          reabertura=$(printf '2\n3\n' | timeout 30s script -q -e -c 'docker compose run tasktracker' /dev/null)
+          printf '%s\n' "$reabertura"
+          grep -Fq 'Título: Tarefa persistente' <<< "$reabertura"
+
+          execucao_direta=$(printf '2\n3\n' | timeout 30s script -q -e -c 'docker run -it -v tasktracker-data:/app/data tasktracker-app' /dev/null)
+          grep -Fq 'Título: Tarefa persistente' <<< "$execucao_direta"

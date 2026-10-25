@@ -2,7 +2,7 @@
 
 Projeto desenvolvido no Bootcamp II.
 
-O TaskTracker é uma aplicação simples de linha de comando para organizar tarefas. O programa permite cadastrar novas tarefas e visualizar as tarefas já registradas.
+O TaskTracker é uma aplicação de linha de comando para organizar tarefas. O programa permite cadastrar, visualizar e guardar as tarefas para a próxima execução.
 
 ## Funcionalidades
 
@@ -12,6 +12,7 @@ O TaskTracker é uma aplicação simples de linha de comando para organizar tare
 - Definir o status inicial como `Pendente`
 - Visualizar todas as tarefas cadastradas
 - Informar quando ainda não existem tarefas
+- Salvar as tarefas em um arquivo JSON para que continuem disponíveis após sair e abrir novamente
 
 ## Dados de cada tarefa
 
@@ -30,6 +31,7 @@ Cada tarefa possui:
 - GitHub
 - Docker
 - Docker Compose
+- JSON
 
 ## Estrutura do projeto
 
@@ -37,10 +39,13 @@ Cada tarefa possui:
 tasktracker-projeto/
 ├── .gitignore
 ├── .dockerignore
+├── .github/workflows/docker-smoke.yml
 ├── docs/
 │   └── Planejamento Lógico TaskTracker - Geovana Cavalcante Braga.pdf
 ├── src/
 │   └── main.py
+├── scripts/testar-docker.ps1
+├── tests/test_cli.py
 ├── Dockerfile
 ├── docker-compose.yml
 └── README.md
@@ -62,7 +67,11 @@ Em alguns computadores, o comando pode ser:
 python3 src/main.py
 ```
 
+No menu, digite `1` para cadastrar uma tarefa, `2` para visualizar as tarefas e `3` para sair. Ao cadastrar, o programa pede título, descrição, prioridade e data limite. O arquivo `data/tarefas.json` é criado automaticamente na primeira tarefa salva. A pasta `data/` não é enviada ao GitHub.
+
 ## Como executar com Docker
+
+Neste projeto, **imagem Docker** significa o pacote de software usado para iniciar um container. Não é uma figura ou fotografia. O build é feito pelo terminal; depois você pode conferir a imagem na aba **Images** do Docker Desktop ou com `docker image ls tasktracker-app`.
 
 ### 1. Construir a imagem
 
@@ -84,6 +93,14 @@ docker run -it tasktracker-app
 
 A opção `-it` mantém o terminal interativo para que seja possível utilizar o menu do TaskTracker.
 
+O comando acima atende à demonstração básica, mas cada `docker run` cria um novo container. Para **guardar as tarefas entre execuções**, use sempre o mesmo volume nomeado:
+
+```bash
+docker run -it -v tasktracker-data:/app/data tasktracker-app
+```
+
+Se executar novamente esse comando com `-v`, as tarefas anteriores aparecerão na opção `2` do menu.
+
 ### 3. Executar com Docker Compose
 
 Também é possível executar a aplicação usando o arquivo `docker-compose.yml`:
@@ -92,7 +109,7 @@ Também é possível executar a aplicação usando o arquivo `docker-compose.yml
 docker compose run tasktracker
 ```
 
-O `docker-compose.yml` mantém a entrada padrão e o terminal interativo habilitados por meio de `stdin_open: true` e `tty: true`.
+O `docker-compose.yml` mantém a entrada padrão e o terminal interativo habilitados por meio de `stdin_open: true` e `tty: true`. Também monta o volume `tasktracker-data` em `/app/data`; por isso as tarefas continuam disponíveis quando você sai e executa o Compose novamente. O comando Docker com `-v` usa esse mesmo volume.
 
 ## Arquivos de containerização
 
@@ -102,9 +119,27 @@ O `Dockerfile` utiliza a imagem `python:3.11-slim`, define `/app` como diretóri
 
 ### docker-compose.yml
 
-O arquivo `docker-compose.yml` cria o serviço `tasktracker` a partir do `Dockerfile` e configura a interatividade necessária para a aplicação de linha de comando.
+O arquivo `docker-compose.yml` cria o serviço `tasktracker` a partir do `Dockerfile`, configura a interatividade necessária para a aplicação de linha de comando e guarda os dados em um volume Docker.
+
+## Testes
+
+Para testar as regras do menu e a persistência com Python:
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+No Windows, com o Docker Desktop em execução, rode o teste completo de build, container e persistência:
+
+```powershell
+pwsh -NoProfile -File .\scripts\testar-docker.ps1
+```
+
+Esse teste usa um volume temporário próprio e o remove ao terminar. As suas tarefas não são apagadas. O GitHub Actions também executa o build e a CLI em containers Linux a cada envio para a branch `main`.
 
 ## Observações
 
 - Os comandos Docker exigem que o Docker Desktop esteja em execução com o mecanismo de containers Linux disponível.
-- As tarefas ficam apenas na memória enquanto o programa está aberto. Ao encerrar a aplicação ou o container, os dados cadastrados nesta execução não são preservados.
+- Em Python local, as tarefas ficam em `data/tarefas.json`.
+- No Docker, o comando básico sem `-v` não preserva as tarefas entre containers. Use o comando com `-v` ou o Docker Compose para persistir os dados.
+- A data limite é armazenada como texto nesta versão; o programa não verifica o formato da data.

@@ -3,3 +3,9 @@ services:
     build: .
     stdin_open: true
     tty: true
+    volumes:
+      - tasktracker-data:/app/data
+
+volumes:
+  tasktracker-data:
+    name: ${TASKTRACKER_VOLUME_NAME:-tasktracker-data}

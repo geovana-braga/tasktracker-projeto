@@ -1,7 +1,39 @@
 # TaskTracker - Bootcamp II
 
+import json
+import os
+from pathlib import Path
+
 
 tarefas = []
+
+
+def caminho_dados():
+    configurado = os.environ.get("TASKTRACKER_DATA_FILE")
+    if configurado:
+        return Path(configurado)
+    return Path(__file__).resolve().parent.parent / "data" / "tarefas.json"
+
+
+def carregar_tarefas():
+    arquivo = caminho_dados()
+    if not arquivo.exists():
+        return []
+
+    with arquivo.open("r", encoding="utf-8") as entrada:
+        dados = json.load(entrada)
+    if not isinstance(dados, list) or not all(isinstance(item, dict) for item in dados):
+        raise ValueError("o arquivo de tarefas não contém uma lista válida")
+    return dados
+
+
+def salvar_tarefas():
+    arquivo = caminho_dados()
+    arquivo.parent.mkdir(parents=True, exist_ok=True)
+    temporario = arquivo.with_name(arquivo.name + ".tmp")
+    with temporario.open("w", encoding="utf-8") as saida:
+        json.dump(tarefas, saida, ensure_ascii=False, indent=2)
+    os.replace(temporario, arquivo)
 
 
 def mostrar_menu():
@@ -52,6 +84,12 @@ def cadastrar_tarefa():
     }
 
     tarefas.append(tarefa)
+    try:
+        salvar_tarefas()
+    except OSError as erro:
+        tarefas.pop()
+        print(f"Não foi possível salvar a tarefa: {erro}")
+        return
     print("Tarefa cadastrada com sucesso!")
 
 
@@ -73,6 +111,13 @@ def visualizar_tarefas():
 
 
 def main():
+    global tarefas
+    try:
+        tarefas = carregar_tarefas()
+    except (OSError, ValueError) as erro:
+        print(f"Não foi possível carregar as tarefas salvas: {erro}")
+        return
+
     while True:
         mostrar_menu()
         opcao = input("Escolha uma opção: ").strip()

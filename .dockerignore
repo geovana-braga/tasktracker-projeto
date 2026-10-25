@@ -6,3 +6,7 @@ __pycache__
 *.pyc
 docs
 README.md
+data/
+tests/
+scripts/
+.github/
