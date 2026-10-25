@@ -1,0 +1,5 @@
+services:
+  tasktracker:
+    build: .
+    stdin_open: true
+    tty: true
