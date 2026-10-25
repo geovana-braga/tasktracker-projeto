@@ -20,7 +20,7 @@ jobs:
       - name: Execução direta do container
         shell: bash
         run: |
-          output=$(printf '1\nTarefa no Docker\nTeste do container\nAlta\n2026-10-31\n2\n3\n' | docker run -i --rm tasktracker-app)
+          output=$(printf '1\nTarefa no Docker\nTeste do container\nAlta\n2026-10-31\n2\n3\n' | timeout 30s script -q -e -c 'docker run -it tasktracker-app' /dev/null)
           printf '%s\n' "$output"
           grep -Fq 'Tarefa cadastrada com sucesso!' <<< "$output"
           grep -Fq 'Título: Tarefa no Docker' <<< "$output"
@@ -30,6 +30,6 @@ jobs:
         shell: bash
         run: |
           docker compose config --quiet
-          output=$(printf '2\n3\n' | docker compose run -T --rm tasktracker)
+          output=$(printf '2\n3\n' | timeout 30s script -q -e -c 'docker compose run tasktracker' /dev/null)
           printf '%s\n' "$output"
           grep -Fq 'Nenhuma tarefa cadastrada no momento.' <<< "$output"
